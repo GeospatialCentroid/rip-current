@@ -2,6 +2,12 @@
 
 ## Setup
 
+
+### Installing Olama
+
+https://ollama.com/download/
+
+
 ### Downloading and setting-up
     
 1. Clone the project, and direct your terminal window to the project folder 
@@ -21,4 +27,7 @@ Note: if you add any python packages, be sure to run ```pip freeze > requirement
 With the virtual environment activate, from your terminal run:
 ```
 python main.py -d "{name of data file}"
+
+
 ```
+

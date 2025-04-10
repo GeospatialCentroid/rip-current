@@ -9,7 +9,7 @@ def get_news():
     googlenews.set_encode('utf-8')
 
     googlenews.get_news('rip current, rip current drowning, rip currents, sneaker waves, sneaker wave drowning')
-    googlenews.get_news()
+
     # googlenews.total_count() not working
     results = googlenews.results()
     return results

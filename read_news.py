@@ -4,6 +4,7 @@ from newspaper import Config
 from time import sleep
 from newspaper.article import ArticleException, ArticleDownloadState
 import spacy
+import ollama
 import os
 
 from googlenewsdecoder import gnewsdecoder
@@ -18,6 +19,14 @@ config.browser_user_agent = USER_AGENT
 config.request_timeout = 10
 
 def read_news(_url, _file_name,author):
+    '''
+
+    :param _url:
+    :param _file_name:
+    :param author:
+    :return:
+    '''
+
     if not os.path.exists(article_path):
         os.makedirs(article_path)
 
