@@ -6,7 +6,7 @@
     
 1. Clone the project, and direct your terminal window to the project folder 
 2. create virtual environment
-    ```python -m venv venv```
+    ```python3.12 -m venv venv```
 3. Activate virtual environment
 ```source venv/bin/activate```
 or on windows: 
