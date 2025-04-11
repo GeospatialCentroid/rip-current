@@ -3,8 +3,7 @@ from newspaper import Config
 
 from time import sleep
 from newspaper.article import ArticleException, ArticleDownloadState
-import spacy
-import ollama
+from ollama import chat
 import os
 
 from googlenewsdecoder import gnewsdecoder
@@ -39,18 +38,32 @@ def read_news(_url, _file_name,author):
     else:
         text = download_article(get_redirect_url(_url),_file_name)
 
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
 
-    locations = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
-    print(locations,locations)
+    # ref: https://github.com/ollama/ollama-python/tree/main/examples
+    messages = [
+        {
+            'role': 'user',
+            'content': 'Here is the article text I\'m working with "'+text+'"' ,
+        },]
+    print("The article name is "+_file_name)
+    while True:
+        user_input = input("What would you like to know about this article: ")
+        if user_input.lower() == 'exit':
+            break
+        response = chat(
+            'gemma3:1b',
+            messages=messages
+                     + [
+                         {'role': 'user', 'content': user_input},
+                     ],
+        )
 
-    person = [ee for ee in doc.ents if ee.label_ == 'PERSON']
-    for p in person[:]:  # iterate over a copy to avoid index issues
-        if str(p).strip() == author.strip():  # remove the author
-            person.remove(p)
-
-    print("person",person)
+        # Add the response to the messages to maintain the history
+        messages += [
+            {'role': 'user', 'content': user_input},
+            {'role': 'assistant', 'content': response.message.content},
+        ]
+        print(response.message.content + '\n')
 
 
 
@@ -87,3 +100,7 @@ def download_article(url,_file_name):
         f.close()
 
     return text
+
+def chat_with_ollama(model_name, prompt):
+    response = ollama.chat(model=model_name, messages=[{'role': 'user', 'content': prompt}])
+    return response['message']['content']

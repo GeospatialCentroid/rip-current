@@ -12,11 +12,14 @@ If called on its own
  python main.py -f process_articles -d "rip_current_articles.csv"
 
 Or if just testing the loaded articles use:
-python main.py -f read_articles -d "rip_current_articles.csv"
+python main.py -f read_articles -d "rip_current_articles.csv" -r 4
 '''
 
 import argparse
 import pandas as pd
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import get_news
 import read_news
 
@@ -71,12 +74,14 @@ def main():
 
 def process_articles(archive,latest_news,output):
     #
-
+    len_before = len(archive)
     all_data = pd.concat([archive, latest_news], ignore_index=True)
 
     all_data = all_data.drop_duplicates(subset=['title','reporter','date'])  # Check for duplicates
+    len_after = len(all_data)
+
     all_data.to_csv(output, index=False)
-    print("saved", output)
+    print("saved", output, "Articles added:",len_after-len_before)
 
 
 def read_articles(news_df,output):
