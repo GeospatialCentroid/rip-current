@@ -18,6 +18,8 @@ python main.py -f read_articles -d "rip_current_articles.csv" -r 4
 import argparse
 import pandas as pd
 import warnings
+import re
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import get_news
@@ -89,7 +91,9 @@ def read_articles(news_df,output):
     # print(news_df.iloc[0]["link"])
     row =news_df.iloc[args.row]
     reporter=str(row["reporter"]).replace("By "," ")
-    read_news.read_news(row["link"], row["title"]+"_"+row["media"]+"_"+reporter+".txt",reporter)
+    file_name=row["title"]+"_"+row["media"]+"_"+reporter
+    file_name=re.sub(r'[^a-zA-Z0-9\s]', '', file_name)
+    read_news.read_news(row["link"], file_name+".txt",reporter)
 
     news_df["processed"].iloc[args.row] = 'y'
     news_df.to_csv(output, index=False)
