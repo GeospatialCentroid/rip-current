@@ -43,8 +43,10 @@ print(args.data)
 def main():
 
     try:
-        news_df = pd.read_csv(args.data)
-    except:
+        news_df = pd.read_csv(args.data, encoding='cp1252')
+    except Exception as e:
+        print(e)
+        print("creating new CSV",args.data)
         column_names = [
             'title',
             'desc',
@@ -87,11 +89,11 @@ def process_articles(archive,latest_news,output):
 
 
 def read_articles(news_df,output):
-
-    # print(news_df.iloc[0]["link"])
+    print("--------------------")
+    print(news_df)
     row =news_df.iloc[args.row]
     reporter=str(row["reporter"]).replace("By "," ")
-    file_name=row["title"]+"_"+row["media"]+"_"+reporter
+    file_name=row["title"]+"_"+str(row["media"])+"_"+reporter
     file_name=re.sub(r'[^a-zA-Z0-9\s]', '', file_name)
     read_news.read_news(row["link"], file_name+".txt",reporter)
 

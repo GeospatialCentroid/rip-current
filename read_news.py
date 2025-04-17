@@ -36,7 +36,10 @@ def read_news(_url, _file_name,author):
         file = open(article_path + "/" + _file_name, 'r')
         text = file.read()
     else:
-        text = download_article(get_redirect_url(_url),_file_name)
+        if "https://news.google.com" in _url:
+            _url = get_redirect_url(_url)
+
+        text = download_article(_url,_file_name)
 
 
     # ref: https://github.com/ollama/ollama-python/tree/main/examples
