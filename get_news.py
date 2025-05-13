@@ -1,6 +1,7 @@
 from GoogleNews import GoogleNews
 
 def get_news():
+
     googlenews = GoogleNews()
 
     googlenews.set_lang('en')

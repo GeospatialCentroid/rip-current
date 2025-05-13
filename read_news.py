@@ -4,12 +4,15 @@ from newspaper import Config
 from time import sleep
 from newspaper.article import ArticleException, ArticleDownloadState
 from ollama import chat
+from ollama import Client
 import os
-
+import pandas as pd
 from googlenewsdecoder import gnewsdecoder
 
-article_path="articles"
 
+
+article_path="articles"
+model='gemma3:1b'
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
 
@@ -17,20 +20,20 @@ config = Config()
 config.browser_user_agent = USER_AGENT
 config.request_timeout = 10
 
-def read_news(_url, _file_name,author):
-
-    '''
+def read_news(_url, _file_name,author,question_file):
+    """
 
     :param _url:
     :param _file_name:
     :param author:
+    :param questions:
     :return:
-    '''
+    """
 
     if not os.path.exists(article_path):
         os.makedirs(article_path)
 
-    text =""
+    print("URL:",_url)
     # if we have already downloaded the article just use the existing download
     if os.path.exists(article_path + "/" + _file_name):
         file = open(article_path + "/" + _file_name, 'r')
@@ -41,14 +44,54 @@ def read_news(_url, _file_name,author):
 
         text = download_article(_url,_file_name)
 
-
-    # ref: https://github.com/ollama/ollama-python/tree/main/examples
+        # begin the LLM chat message list
     messages = [
         {
             'role': 'user',
-            'content': 'Here is the article text I\'m working with "'+text+'"' ,
-        },]
-    print("The article name is "+_file_name)
+            'content': 'Here is the article text I\'m working with "' + text + '"',
+        }, ]
+    # load the questions
+    if question_file==False:
+        setup_llm_chat(_file_name, text, messages)
+    else:
+        return setup_llm_client(pd.read_csv(question_file),text,messages)
+
+def setup_llm_client(questions,text,messages):
+    """
+
+    :param questions:
+    :param text:
+    :return:
+    """
+    # start by adding a temporary column to store the responses
+    questions["response"]=''
+
+    for index, row in questions.iterrows():
+        # combine the question parts pre	question	post	options
+        question = row['pre'] + " " + str(row['question']) + " " + str(row['post']) + " " + str(row['options'])
+        messages.append({'role': 'user', 'content': question})
+        # capture the message response
+        response = chat(model,messages=[*messages, {'role': 'user', 'content': question}],)
+
+        # Add the response to the messages to maintain the history
+        messages += [
+            {'role': 'user', 'content': question},
+            {'role': 'assistant', 'content': response.message.content},
+        ]
+        # save the message response
+        questions["response"].iloc[index]=response.message.content
+        print(question,":",response.message.content)
+    # pass the question dataframe back with responses
+    return questions
+
+def setup_llm_chat(_file_name,text,messages):
+    """
+    A function for testing the llm
+    :param _file_name:
+    :param text:
+    :return:
+    """
+    print("The article name is " + _file_name)
     while True:
         user_input = input("What would you like to know about this article: ")
         if user_input.lower() == 'exit':
@@ -67,7 +110,6 @@ def read_news(_url, _file_name,author):
             {'role': 'assistant', 'content': response.message.content},
         ]
         print(response.message.content + '\n')
-
 
 
 def get_redirect_url(url):

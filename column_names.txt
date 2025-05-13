@@ -1,0 +1,23 @@
+title
+desc
+date
+datetime
+link
+img
+media
+site
+reporter
+processed
+drowning
+cause of drowning
+city
+state
+beach
+gender
+age
+month
+day
+year
+time of occurrence
+resident or tourist
+summary

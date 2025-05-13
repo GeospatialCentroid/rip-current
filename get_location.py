@@ -5,18 +5,23 @@ import geopandas as gpd
 from shapely.geometry import Point
 from shapely.ops import nearest_points
 
-geolocator = Nominatim(user_agent="Rip current")
+def get_location(location_name):
 
-location = geolocator.geocode("Seaside oregon")
-print(location.latitude, location.longitude)
+    print("searching for the location of: ",location_name)
 
-point = Point(location.longitude,location.latitude)
+    geolocator = Nominatim(user_agent="Rip current")
 
-shapefile_path = 'locations/w_10se24.zip'
-gdf = gpd.read_file(shapefile_path)
+    location = geolocator.geocode(location_name)
+    if location:
+        point = Point(location.longitude,location.latitude)
 
-# Find the nearest polygon
-nearest_polygon = min(gdf['geometry'], key=lambda polygon: polygon.distance(point))
+        shapefile_path = 'locations/w_10se24.zip'
+        gdf = gpd.read_file(shapefile_path)
 
-row = gdf[gdf['geometry'] == nearest_polygon]
-print(row,row["WFO"])
+        # Find the nearest polygon
+        nearest_polygon = min(gdf['geometry'], key=lambda polygon: polygon.distance(point))
+
+        row = gdf[gdf['geometry'] == nearest_polygon]
+        return {"geo":row,"lat":location.latitude,"lng":location.longitude}
+    else:
+        return
