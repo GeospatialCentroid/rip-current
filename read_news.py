@@ -33,7 +33,7 @@ def read_news(_url, _file_name,author,question_file):
     if not os.path.exists(article_path):
         os.makedirs(article_path)
 
-    print("URL:",_url)
+    # print("URL:",_url)
     # if we have already downloaded the article just use the existing download
     if os.path.exists(article_path + "/" + _file_name):
         file = open(article_path + "/" + _file_name, 'r')
@@ -43,6 +43,8 @@ def read_news(_url, _file_name,author,question_file):
             _url = get_redirect_url(_url)
 
         text = download_article(_url,_file_name)
+        if text =='':
+            return False
 
         # begin the LLM chat message list
     messages = [
@@ -134,15 +136,18 @@ def download_article(url,_file_name):
             raise ArticleException('Download never started')
         sleep(1)
         slept += 1
+    try:
+        article.parse()
+        text = article.text
 
-    article.parse()
-    text = article.text
-
-    # save a copy of the article
-    if not os.path.exists(article_path + "/" + _file_name):
-        f = open(article_path + "/" + _file_name, "a")
-        f.write(text)
-        f.close()
+        # save a copy of the article
+        if not os.path.exists(article_path + "/" + _file_name):
+            f = open(article_path + "/" + _file_name, "a")
+            f.write(text)
+            f.close()
+    except Exception as e:
+            print(e)
+            return ''
 
     return text
 
