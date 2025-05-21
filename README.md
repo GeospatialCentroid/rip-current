@@ -91,3 +91,10 @@ Questions are stored in the {question file} file using the column structure:
 * options: the choices for the response
 * column name: the column to be populated in the rip_current_articles.csv spreadsheet
 
+### Uploading new points
+
+To Add new points to a feature service
+Call:
+```
+python main.py -f upload_points -d "{name of data file}"
+```

@@ -28,6 +28,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import get_news
 import read_news
 import get_location
+import upload_points
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description="")
@@ -66,6 +67,9 @@ def main():
 
     if args.function == 'read_articles':
         read_articles(news_df,args.data)
+    if args.function == 'upload_points':
+        upload_points.upload_points(news_df, args.data)
+
     else:
         articles = pd.DataFrame(get_news.get_news())
 
