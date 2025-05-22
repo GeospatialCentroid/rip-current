@@ -2,6 +2,7 @@
 ---
 
 ## 1 Project Purpose
+
 The documented number of fatalities that have occurred as a result of drownings related to rib currents is not consistent. 
 In an effort to better quantify the annual number of these drownings, this project uses news articles and AI to gather details from Google News.
 Each article is prompted with series of questions used to populate a spreadsheet.
@@ -60,8 +61,10 @@ You should see (venv) at the beginning of your Terminal line indicating the virt
 4. Install the required libraries into your virtual environment
 ```pip install -r requirements.txt```
    
-Note: If you add any new python packages, be sure to run ```pip freeze > requirements.txt``` 
+Note: If you add any new python packages, be sure to run 
+```pip freeze > requirements.txt``` 
 to update the requirements file.
+
 ---
 ## 4 Running the application
 Note: Your virtual environment must be activated, before running the application:
