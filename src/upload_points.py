@@ -3,7 +3,9 @@ from arcgis.gis import GIS
 from dotenv import load_dotenv
 from typing import Optional, Tuple
 from arcgis.features import GeoAccessor, FeatureLayer, Feature
-from arcgis.geometry import Point
+
+spatial_reference = 4326  # Example: WGS 84
+
 # ---------------------------------------------------------------------------- #
 #  Helper: authenticate via Pro, Home, or .env credentials                     #
 # ---------------------------------------------------------------------------- #
@@ -70,12 +72,15 @@ def upload_points(news_df, args):
     print(f"Fetching existing feature coordinates (rounded to {xy_decimals} dp)…")
     fs_existing = layer.query(where="1=1",
                               out_fields="*",
-                              return_geometry=True)
+                              return_geometry=True,out_sr=spatial_reference)
+
+
+
     existing_keys = {
         geom_key(feat.geometry["x"], feat.geometry["y"], xy_decimals)
         for feat in fs_existing
     }
-    print(f"  {len(existing_keys):,} existing features on service.\n")
+    print(f"  {len(existing_keys):,} existing features in service.\n")
 
     # ------------------------------------------------------------------------ #
     # 4) Load local FC and build local FeatureSet                              #
@@ -87,18 +92,20 @@ def upload_points(news_df, args):
     # ------------------------------------------------------------------------ #
     # 5) Filter to only those whose geometry key is not already online         #
     # ------------------------------------------------------------------------ #
+
     to_add = []
     for index,row in news_df.iterrows():
 
         key = geom_key(row["Long"], row["Lat"], xy_decimals)
+        print("key",key)
         if key not in existing_keys:
             # Define the point geometry
             # Create a Feature object
             new_feature =  {
-                "geometry": {"x": float(row['Long']), "y": float(row['Lat']), "spatialReference": {"wkid": 4326}},
+                "geometry": {"x": float(row['Long']), "y": float(row['Lat']), "spatialReference": {"wkid": spatial_reference}},
                 "attributes": {},
             }
-            print(new_feature)
+            # print(new_feature)
             to_add.append(new_feature)
 
     if not to_add:

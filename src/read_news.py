@@ -1,3 +1,7 @@
+
+
+
+
 from newspaper import Article
 from newspaper import Config
 
@@ -9,9 +13,7 @@ import os
 import pandas as pd
 from googlenewsdecoder import gnewsdecoder
 
-
-
-article_path="articles"
+article_path= "../articles"
 model='gemma3:1b'
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
@@ -70,7 +72,7 @@ def setup_llm_client(questions,text,messages):
 
     for index, row in questions.iterrows():
         # combine the question parts pre	question	post	options
-        question = row['pre'] + " " + str(row['question']) + " " + str(row['post']) + " " + str(row['options'])
+        question = str(row['pre']) + " " + str(row['question']) + " " + str(row['post']) + " " + str(row['options'])
         messages.append({'role': 'user', 'content': question})
         # capture the message response
         response = chat(model,messages=[*messages, {'role': 'user', 'content': question}],)

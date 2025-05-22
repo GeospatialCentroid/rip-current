@@ -21,3 +21,6 @@ year
 time of occurrence
 resident or tourist
 summary
+lat
+lng
+WFO

@@ -15,7 +15,7 @@ def get_location(location_name):
     if location:
         point = Point(location.longitude,location.latitude)
 
-        shapefile_path = 'locations/w_10se24.zip'
+        shapefile_path = '../locations/w_10se24.zip'
         gdf = gpd.read_file(shapefile_path)
 
         # Find the nearest polygon
