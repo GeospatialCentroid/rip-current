@@ -1,4 +1,5 @@
-*Rip Current*
+##Rip Current
+
 ---
 
 ## 1 Project Purpose
@@ -8,6 +9,7 @@ In an effort to better quantify the annual number of these drownings, this proje
 Each article is prompted with series of questions used to populate a spreadsheet.
 The location information gathered (Beach, City, State) are geolocated and then used to identify the closest  Weather Forecast Office (WFO).
 These geolocated points are then uploaded to an ArcGIS Online Feature Service for public access.
+
 ---
 
 ## 2 Directory layout
