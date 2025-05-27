@@ -130,7 +130,7 @@ Questions are stored in the {question file} file using the column structure:
 
 ## 7 Uploading New Points
 A feature service can be used to share information with the public. 
-This feature service will need to be created in ArcGIS Online
+This feature service will need to be created in ArcGIS Online.
 Edit permissions to this feature service should be restricted. 
 To gain authentication to the feature service, a .env file should be created and saved, 
 replacing the {} variables as appropriate:
