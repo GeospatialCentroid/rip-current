@@ -56,7 +56,7 @@ ollama pull gemma3:1b
 3. Activate virtual environment
     ```source venv/bin/activate```
 or on Windows: 
-    ```.\venv\scripts\Activate.ps1 ```
+    ```.\venv\scripts\Activate.ps1 ``` or ```.\venv\scripts\Activate.ps1 ```
    
 You should see (venv) at the beginning of your Terminal line indicating the virtual environment is activated.
 
