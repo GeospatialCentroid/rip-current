@@ -40,13 +40,13 @@ def get_location_google(location_name,key):
     result = get_url_result(url)
 
     if result and len(result["results"][0])>0:
-        print(result)
+        # print(result)
         lat = result["results"][0]['geometry']['location']['lat']
         lng= result["results"][0]['geometry']['location']['lng']
-        row = get_closest_WFO(lat,lng)
-        return {"geo":row,"lat":lat,"lng":lat}
+        row = get_closest_WFO(lat,lng).iloc[0]
+        return {"WFO":str(row["WFO"]),"lat":lat,"lng":lng}
     else:
-        print(result)
+        print("Error: ",result)
         return
 
 def get_closest_WFO(lat,lng):

@@ -1,4 +1,4 @@
-index
+OBJECTID
 title
 desc
 date
@@ -10,7 +10,7 @@ site
 reporter
 processed
 drowning
-cause of drowning
+cause_of_drowning
 city
 state
 beach
@@ -19,8 +19,8 @@ age
 month
 day
 year
-time of occurrence
-resident or tourist
+time_of_occurrence
+resident_or_tourist
 summary
 lat
 lng

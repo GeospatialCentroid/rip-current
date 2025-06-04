@@ -63,7 +63,6 @@ def main(args) -> None:
     if args.function == 'get_location':
         # subset the list for points without lat
         for index, row in news_df[(news_df["lat"].isna()) & (news_df["lng"].isna() ) & (news_df["processed"] == 'y')].iterrows():
-            print(row)
             check_location(row, news_df,args.key)
 
     if args.function == 'get_news':
@@ -132,12 +131,12 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None):
         if responses is not False:
             #populate the record columns based on the prompt responses
             for index, r in responses.iterrows():
-                news_df[r["column name"].strip()].loc[row["index"]] = r["response"]
+                news_df[r["column name"].strip()].loc[row["OBJECTID"]] = r["response"]
 
             # check for city, state and beach to geolocate
-            check_location(news_df.loc[row["index"]], news_df,_key)
+            check_location(news_df.loc[row["OBJECTID"]], news_df,_key)
 
-            news_df["processed"].loc[row["index"]] = 'y'
+            news_df["processed"].loc[row["OBJECTID"]] = 'y'
             news_df.to_csv(output, index=False)
             print("saved", output)
         else:
@@ -157,8 +156,9 @@ def check_location(row,news_df,key=None):
             location = get_location.get_location(search_string)
         print(location, "is the location")
         if location:
-            news_df["lat"].loc[row["index"]] = location["lat"]
-            news_df["lng"].loc[row["index"]] = location["lng"]
+            news_df["lat"].loc[row["OBJECTID"]] = location["lat"]
+            news_df["lng"].loc[row["OBJECTID"]] = location["lng"]
+            news_df["WFO"].loc[row["OBJECTID"]] = location["WFO"]
         else:
             print("no location found!")
 

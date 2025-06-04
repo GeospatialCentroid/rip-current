@@ -82,12 +82,18 @@ def upload_points(news_df, args):
     }
     print(f"  {len(existing_keys):,} existing features in service.\n")
 
+    ## get the field names
+
+    field_names = [field.name for field in layer.properties.fields]
+    print("field_names:",field_names)
+
     # ------------------------------------------------------------------------ #
     # 4) Load local FC and build local FeatureSet                              #
     # ------------------------------------------------------------------------ #
 
 
-    news_df = news_df[news_df['Lat'].notna() & (news_df['Lat'] != '') & news_df['Long'].notna() & (news_df['Long'] != '')]
+    news_df = news_df[news_df['lat'].notna() & (news_df['lat'] != '') & news_df['lng'].notna() & (news_df['lng'] != '')]
+    print(f"Records with geolocation: {len(news_df)}")
     #
     # ------------------------------------------------------------------------ #
     # 5) Filter to only those whose geometry key is not already online         #
@@ -96,16 +102,22 @@ def upload_points(news_df, args):
     to_add = []
     for index,row in news_df.iterrows():
 
-        key = geom_key(row["Long"], row["Lat"], xy_decimals)
+        key = geom_key(row["lng"], row["lat"], xy_decimals)
         print("key",key)
         if key not in existing_keys:
+            # loop over the feature service attributes and take the same columns from the spreadsheet to add to the feature
+            attributes={}
+            for f in field_names:
+                attributes[f]=row[f]
+
             # Define the point geometry
             # Create a Feature object
+
             new_feature =  {
-                "geometry": {"x": float(row['Long']), "y": float(row['Lat']), "spatialReference": {"wkid": spatial_reference}},
-                "attributes": {},
+                "geometry": {"x": float(row['lng']), "y": float(row['lat']), "spatialReference": {"wkid": spatial_reference}},
+                "attributes": attributes,
             }
-            # print(new_feature)
+            print(new_feature)
             to_add.append(new_feature)
 
     if not to_add:
