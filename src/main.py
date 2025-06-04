@@ -31,29 +31,11 @@ from . import read_news
 from . import get_location
 from . import upload_points
 
-# Create an ArgumentParser object
-parser = argparse.ArgumentParser(description="")
-
-# Add arguments
-parser.add_argument("-d","--data", type=str, help="The input data file")
-
-parser.add_argument("-q","--questions", type=str, help="The questions to ask of the data")
-
-parser.add_argument("-f","--function", type=str, help="function to call")
-
-parser.add_argument("-r","--row", type=int, help="row to run")
-
-# Parse arguments
-args = parser.parse_args()
-
-print(args.data)
-
-def main() -> None:
+def main(args) -> None:
     """
     The main entry point to for the program
     :return:
     """
-
     try:
         # Tries to open the CSV files specified
         news_df = pd.read_csv(args.data, encoding='utf8', skip_blank_lines=True)
@@ -75,10 +57,16 @@ def main() -> None:
 
     # Now decide what to do based on the function argument
     if args.function == 'read_articles':
-        read_articles(news_df,args.data)
+        read_articles(news_df,args.data,args.row,args.questions,args.key)
     if args.function == 'upload_points':
         upload_points.upload_points(news_df, args.data)
-    else:
+    if args.function == 'get_location':
+        # subset the list for points without lat
+        for index, row in news_df[(news_df["lat"].isna()) & (news_df["lng"].isna() ) & (news_df["processed"] == 'y')].iterrows():
+            print(row)
+            check_location(row, news_df,args.key)
+
+    if args.function == 'get_news':
         # Fetch the articles
         articles = pd.DataFrame(get_news.get_news())
         process_articles(news_df,articles,args.data)
@@ -107,7 +95,7 @@ def process_articles(archive,latest_news,output):
     print("New article(s) added:",len_after-len_before)
 
 
-def read_articles(news_df,output):
+def read_articles(news_df,output,_row=None,_questions=None,_key=None):
     """
     Worked through the selected news articles in the spreadsheet
     Opening, saving, reading, prompting and storing the relevant information
@@ -119,13 +107,13 @@ def read_articles(news_df,output):
     if 'index' not in news_df.columns:
         news_df.insert(0, 'index', range(0, len(news_df) )) # force an index to keep track
 
-    if not args.row:
+    if not _row:
         # populate a list of all the rows that haven't been processed
         rows=[]
         for index, row in news_df[news_df["processed"]!='y'].iterrows():
             rows.append(row)
     else:
-        rows = [news_df.loc[args.row]]
+        rows = [news_df.loc[_row]]
 
     print("About to update ",len(rows)," row(s)")
     for row in rows:
@@ -135,8 +123,8 @@ def read_articles(news_df,output):
 
         # determine if we're working with questions
         questions = False
-        if args.questions:
-            questions = args.questions
+        if _questions:
+            questions = _questions
 
         # read the articles and get the answers to the prompt
         responses = read_news.read_news(row["link"], file_name + ".txt", reporter, questions)
@@ -147,24 +135,48 @@ def read_articles(news_df,output):
                 news_df[r["column name"].strip()].loc[row["index"]] = r["response"]
 
             # check for city, state and beach to geolocate
-            if isinstance(row["city"], str) and row["city"]!='' \
-                    and isinstance(row["state"], str) and row["state"]!='' \
-                    and isinstance(row["beach"], str) and row["beach"]!='':
-                location = get_location.get_location( row["beach"]+ ", " + row["city"] + ", " + row["state"])
-                print(location, "is the location")
-                if location:
-                    news_df[r["lat"].strip()].loc[row["index"]] = location["lat"]
-                    news_df[r["lng"].strip()].loc[row["index"]] = location["lng"]
-                    #
-                    location["geo"]
-            else:
-                print("no location found!")
+            check_location(row, news_df,_key)
 
-                news_df["processed"].loc[row["index"]] = 'y'
+            news_df["processed"].loc[row["index"]] = 'y'
             news_df.to_csv(output, index=False)
             print("saved", output)
         else:
             print("Unable to open the article")
 
+def check_location(row,news_df,key=None):
+    if isinstance(row["city"], str) and row["city"] != '' \
+        and isinstance(row["state"], str) and row["state"] != '' \
+        and isinstance(row["beach"], str) and row["beach"] != '':
+        search_string=row["beach"] + ", " + row["city"] + ", " + row["state"]
+        if (key):
+            location = get_location.get_location_google(search_string, key)
+        else:
+            location = get_location.get_location(search_string)
+        print(location, "is the location")
+        if location:
+            news_df["lat"].loc[row["index"]] = location["lat"]
+            news_df["lng"].loc[row["index"]] = location["lng"]
+        else:
+            print("no location found!")
+
+
+def parse_args():
+    # Create an ArgumentParser object
+    parser = argparse.ArgumentParser(description="")
+
+    # Add arguments
+    parser.add_argument("-d", "--data", type=str, help="The input data file")
+
+    parser.add_argument("-q", "--questions", type=str, help="The questions to ask of the data")
+
+    parser.add_argument("-f", "--function", type=str, help="function to call")
+
+    parser.add_argument("-r", "--row", type=int, help="row to run")
+
+    parser.add_argument("-k", "--key", help="key", )
+
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    main()
+
+    main(parse_args())
