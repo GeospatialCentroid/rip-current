@@ -122,7 +122,7 @@ Replacing:
     Without passing a question file, a chatbot is enabled to allow you to ask questions of the article. 
     This is useful during the testing of new prompts to be added the question bank.
 - {google_maps_api_key}: To use the Google Maps API to geolocation the beach from the article. This key can be obtained at https://developers.google.com/maps/documentation/javascript/get-api-key. For test purposes, the following key can be used 
-  *AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_koI*. Omitting this key will default the geolocation search to use OpenStreetMaps, which isn't as useful.
+  *AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko*. Omitting this key will default the geolocation search to use OpenStreetMaps, which isn't as useful.
 
 
 ## 6 Article Information Extraction

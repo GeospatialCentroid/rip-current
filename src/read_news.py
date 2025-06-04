@@ -83,7 +83,7 @@ def setup_llm_client(questions,text,messages):
             {'role': 'assistant', 'content': response.message.content},
         ]
         # save the message response
-        questions["response"].iloc[index]=response.message.content
+        questions["response"].iloc[index]=response.message.content.replace('’',"'")
         print(question,":",response.message.content)
     # pass the question dataframe back with responses
     return questions

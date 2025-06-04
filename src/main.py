@@ -88,6 +88,8 @@ def process_articles(archive,latest_news,output):
     all_data = pd.concat([archive, latest_news], ignore_index=True)
     # remove the duplicates
     all_data = all_data.drop_duplicates(subset=['title','desc','date'])  # Check for duplicates
+
+    all_data = all_data.assign(index=lambda x: range(len(x)))
     # get the new length
     len_after = len(all_data)
     # update the CSV file
@@ -104,8 +106,6 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None):
     :param output: the name of the file to be saved
     :return:
     """
-    if 'index' not in news_df.columns:
-        news_df.insert(0, 'index', range(0, len(news_df) )) # force an index to keep track
 
     if not _row:
         # populate a list of all the rows that haven't been processed
@@ -135,7 +135,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None):
                 news_df[r["column name"].strip()].loc[row["index"]] = r["response"]
 
             # check for city, state and beach to geolocate
-            check_location(row, news_df,_key)
+            check_location(news_df.loc[row["index"]], news_df,_key)
 
             news_df["processed"].loc[row["index"]] = 'y'
             news_df.to_csv(output, index=False)
@@ -144,10 +144,13 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None):
             print("Unable to open the article")
 
 def check_location(row,news_df,key=None):
+    print(row)
     if isinstance(row["city"], str) and row["city"] != '' \
         and isinstance(row["state"], str) and row["state"] != '' \
         and isinstance(row["beach"], str) and row["beach"] != '':
+
         search_string=row["beach"] + ", " + row["city"] + ", " + row["state"]
+        print("Searching for location of: "+search_string)
         if (key):
             location = get_location.get_location_google(search_string, key)
         else:
