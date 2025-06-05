@@ -88,7 +88,7 @@ def process_articles(archive,latest_news,output):
     # remove the duplicates
     all_data = all_data.drop_duplicates(subset=['title','desc','date'])  # Check for duplicates
 
-    all_data = all_data.assign(index=lambda x: range(len(x)))
+    all_data = all_data.assign(OBJECTID=lambda x: range(len(x)))
     # get the new length
     len_after = len(all_data)
     # update the CSV file

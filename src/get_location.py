@@ -39,7 +39,7 @@ def get_location_google(location_name,key):
     url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(str(location_name), key)
     result = get_url_result(url)
 
-    if result and len(result["results"][0])>0:
+    if result and len(result["results"])>0:
         # print(result)
         lat = result["results"][0]['geometry']['location']['lat']
         lng= result["results"][0]['geometry']['location']['lng']
