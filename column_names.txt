@@ -21,7 +21,11 @@ day
 year
 time_of_occurrence
 resident_or_tourist
+city_of_residence
 summary
 lat
 lng
 WFO
+distance_from_wfo
+extension_of_ref
+duplicate_of_ref

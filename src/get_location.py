@@ -43,22 +43,21 @@ def get_location_google(location_name,key):
         # print(result)
         lat = result["results"][0]['geometry']['location']['lat']
         lng= result["results"][0]['geometry']['location']['lng']
-        row = get_closest_WFO(lat,lng).iloc[0]
-        return {"WFO":str(row["WFO"]),"lat":lat,"lng":lng}
+        row, distance = get_closest_WFO(lat,lng)
+        return {"WFO":str(row["WFO"]),"distance_from_wfo":distance,"lat":lat,"lng":lng}
     else:
         print("Error: ",result)
         return
 
 def get_closest_WFO(lat,lng):
-    point = Point(lng,lat)
-
+    point = Point(lng, lat)
     shapefile_path = 'locations/w_10se24.zip'
-    gdf = gpd.read_file(shapefile_path)
+    gdf = gpd.read_file(shapefile_path).to_crs("epsg:4326")
+    # Calculate distances and find the closest geometry
+    gdf['distance'] = gdf['geometry'].distance(point)
+    closest_row = gdf.loc[gdf['distance'].idxmin()]
 
-    # Find the nearest polygon
-    nearest_polygon = min(gdf['geometry'], key=lambda polygon: polygon.distance(point))
-
-    return gdf[gdf['geometry'] == nearest_polygon]
+    return closest_row, closest_row['distance']
 
 def get_url_result(url):
     attempt = 0

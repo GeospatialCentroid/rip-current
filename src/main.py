@@ -14,6 +14,9 @@ The likely sequence of calls through this script are
  python -m src.main -f read_articles -d "rip_current_articles.csv" -r 1 -q questions.csv
 
  python -m src.main -f upload_points -d "rip_current_articles.csv"
+
+ For testing (no saving) - geolocation
+  python -m src.main -f get_location -d "rip_current_articles.csv" - r 1
 '''
 
 import argparse
@@ -67,7 +70,7 @@ def main(args) -> None:
 
     if args.function == 'get_news':
         # Fetch the articles
-        articles = pd.DataFrame(get_news.get_news())
+        articles = pd.DataFrame(get_news.get_news(args.search_string))
         process_articles(news_df,articles,args.data)
 
 
@@ -159,6 +162,8 @@ def check_location(row,news_df,key=None):
             news_df["lat"].loc[row["OBJECTID"]] = location["lat"]
             news_df["lng"].loc[row["OBJECTID"]] = location["lng"]
             news_df["WFO"].loc[row["OBJECTID"]] = location["WFO"]
+            news_df["distance_from_wfo"].loc[row["OBJECTID"]] = location["distance_from_wfo"]
+
         else:
             print("no location found!")
 
@@ -177,6 +182,10 @@ def parse_args():
     parser.add_argument("-r", "--row", type=int, help="row to run")
 
     parser.add_argument("-k", "--key", help="key", )
+
+    parser.add_argument("-s", "--search_string", help="The string you'd like to use when searching Google News ", default='"rip current" OR "rip current drowning"', )
+
+
 
     return parser.parse_args()
 
