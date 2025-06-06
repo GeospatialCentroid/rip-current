@@ -60,7 +60,7 @@ def main(args) -> None:
 
     # Now decide what to do based on the function argument
     if args.function == 'read_articles':
-        read_articles(news_df,args.data,args.row,args.questions,args.key)
+        read_articles(news_df,args.data,args.row,args.questions,args.key,args.model)
     if args.function == 'upload_points':
         upload_points.upload_points(news_df, args.data)
     if args.function == 'get_location':
@@ -70,7 +70,7 @@ def main(args) -> None:
 
     if args.function == 'get_news':
         # Fetch the articles
-        articles = pd.DataFrame(get_news.get_news(args.search_string))
+        articles = pd.DataFrame(get_news.get_news(args.search_string, args.start_date, args.end_date))
         process_articles(news_df,articles,args.data)
 
 
@@ -99,7 +99,7 @@ def process_articles(archive,latest_news,output):
     print("New article(s) added:",len_after-len_before)
 
 
-def read_articles(news_df,output,_row=None,_questions=None,_key=None):
+def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None):
     """
     Worked through the selected news articles in the spreadsheet
     Opening, saving, reading, prompting and storing the relevant information
@@ -129,7 +129,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None):
             questions = _questions
 
         # read the articles and get the answers to the prompt
-        responses = read_news.read_news(row["link"], file_name + ".txt", reporter, questions)
+        responses = read_news.read_news(row["link"], file_name + ".txt", questions,_model)
 
         if responses is not False:
             #populate the record columns based on the prompt responses
@@ -185,7 +185,12 @@ def parse_args():
 
     parser.add_argument("-s", "--search_string", help="The string you'd like to use when searching Google News ", default='"rip current" OR "rip current drowning"', )
 
+    parser.add_argument("-start", "--start_date", help="The string format MM/DD/YYYY to determine the start date of the news search",)
 
+    parser.add_argument("-end", "--end_date", help="The string format MM/DD/YYYY to determine the end date of the news search", )
+
+    parser.add_argument("-m", "--model",
+                        help="If using a different model than 'gemma3:1b'", )
 
     return parser.parse_args()
 

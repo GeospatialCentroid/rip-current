@@ -48,6 +48,16 @@ Then from the command line, run:
 ollama pull gemma3:1b
 ```
 
+#### Using other LLMs
+There are many LLM options to choose from and other LLMs may be useful. If you'd like to use another LLM, 
+please first check if it's Ollama compatible by going to https://ollama.com/library. 
+With the LLM of your choosing, get the model name you desire by navigating to the details page. The run:
+```bash
+ollama pull {model_name}
+```
+replacing ```{model_name}``` with the model name
+
+
 ### Downloading and setting-up the project
     
 1. Clone this repository, and direct your terminal window to the local project folder 
@@ -80,10 +90,27 @@ python -m src.main -f get_news -d  "{name of data file}"
 ```
 Replacing {name of data file} with the csv file you'd like to save articles to.
 
-When called for the first time the 'column_names.txt' files is used to set up the spreadsheet columns.
-Each line in the 'column_names.txt' file represents a new column.
+Optional ```-s {search string}```
+The default search string is '"rip current" OR "rip current drowning"' 
+though many more search terms have been used in the past to find articles from drownings resulting from rip currents.
+These terms are as follows:
+'rip current, rip current drowning, rip currents, sneaker waves, sneaker wave drowning'
+Running the ```get_news``` script could be called multiple times with different search terms to help increase the pool of search results.
+
+Optional ```-start {MM/DD/YYYY} -end {MM/DD/YYYY}```
+Though a check is done on retrieved news articles to remove duplicates, it may be beneficial to constrain the date range of articles.
+
+
+
+Putting it all together a search for news articles could be:
+```base
+python -m src.main -f get_news -d  output.csv -s 'rip current drowning' -start '06/01/2025' -end '06/06/2025'
+```
 
 ## 5 Article information population
+When ```get_news``` is called for the first time the 'column_names.txt' files is used to set up the spreadsheet columns.
+Each line in the 'column_names.txt' file represents a new column.
+
 The columns in the spreadsheet are as follows:
 
 * index
@@ -112,7 +139,7 @@ just be sure the columns that are to be populated via the LLM prompts exist.*
 Once you have a list of articles (see Setting-up the article spreadsheet above), you can read them to start populating additional column information into the spreadsheet.
 call:
 ```
-python -m src.main -f read_articles -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key}
+python -m src.main -f read_articles -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key} -m {model_name}
 ```
 
 Replacing:
@@ -124,6 +151,12 @@ Replacing:
 - {google_maps_api_key}: To use the Google Maps API to geolocation the beach from the article. This key can be obtained at https://developers.google.com/maps/documentation/javascript/get-api-key. For test purposes, the following key can be used 
   *AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko*. Omitting this key will default the geolocation search to use OpenStreetMaps, which isn't as useful.
 
+ - {model_name}: If you've downloaded a different LLM model and want to test it out, please replace '{model_name}' with its name
+
+Putting it all together 'reading' a news article could be performed by calling:
+```base
+python -m src.main -f read_articles -d  output.csv -q questions.csv -k AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko -r 15 -m deepseek-r1:1.5b
+```
 
 ## 6 Article Information Extraction
 The program extracts information from articles by prompting a LLM with questions.

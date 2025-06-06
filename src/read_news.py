@@ -14,7 +14,7 @@ import pandas as pd
 from googlenewsdecoder import gnewsdecoder
 
 article_path= "../articles"
-model='gemma3:1b'
+
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
 
@@ -22,7 +22,7 @@ config = Config()
 config.browser_user_agent = USER_AGENT
 config.request_timeout = 10
 
-def read_news(_url, _file_name,author,question_file):
+def read_news(_url, _file_name,question_file,model='gemma3:1b'):
     """
 
     :param _url:
@@ -56,11 +56,11 @@ def read_news(_url, _file_name,author,question_file):
         }, ]
     # load the questions
     if question_file==False:
-        setup_llm_chat(_file_name, text, messages)
+        setup_llm_chat(_file_name, text, messages,model)
     else:
-        return setup_llm_client(pd.read_csv(question_file),text,messages)
+        return setup_llm_client(pd.read_csv(question_file),text,messages,model)
 
-def setup_llm_client(questions,text,messages):
+def setup_llm_client(questions,text,messages,model='gemma3:1b'):
     """
 
     :param questions:
@@ -88,7 +88,7 @@ def setup_llm_client(questions,text,messages):
     # pass the question dataframe back with responses
     return questions
 
-def setup_llm_chat(_file_name,text,messages):
+def setup_llm_chat(_file_name,text,messages, model):
     """
     A function for testing the llm
     :param _file_name:
@@ -101,7 +101,7 @@ def setup_llm_chat(_file_name,text,messages):
         if user_input.lower() == 'exit':
             break
         response = chat(
-            'gemma3:1b',
+            model,
             messages=messages
                      + [
                          {'role': 'user', 'content': user_input},
