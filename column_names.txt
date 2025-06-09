@@ -27,6 +27,7 @@ lat
 lng
 WFO
 distance_from_wfo
+multiple_drownings
 extension_of_ref
 duplicate_of_ref
 model
