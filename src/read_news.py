@@ -22,7 +22,7 @@ config = Config()
 config.browser_user_agent = USER_AGENT
 config.request_timeout = 10
 
-def read_news(_url, _file_name,question_file,model='gemma3:1b'):
+def read_news(_url, _file_name,question_file,model='gemma3:1b',clean=None):
     """
 
     :param _url:
@@ -56,11 +56,11 @@ def read_news(_url, _file_name,question_file,model='gemma3:1b'):
         }, ]
     # load the questions
     if question_file==False:
-        setup_llm_chat(_file_name, text, messages,model)
+        setup_llm_chat(_file_name, text, messages,model,clean)
     else:
-        return setup_llm_client(pd.read_csv(question_file),text,messages,model)
+        return setup_llm_client(pd.read_csv(question_file),text,messages,model,clean)
 
-def setup_llm_client(questions,text,messages,model='gemma3:1b'):
+def setup_llm_client(questions,text,messages,model,clean):
     """
 
     :param questions:
@@ -84,19 +84,21 @@ def setup_llm_client(questions,text,messages,model='gemma3:1b'):
         ]
         # save the message response
         # first remove any weird characters
-        questions["response"].iloc[index] = clean_response(response.message.content)
+        questions["response"].iloc[index] = clean_response(response.message.content,clean)
         print(question,":",clean_response(response.message.content))
     # pass the question dataframe back with responses
     return questions
 
-def clean_response(str):
-    str = str.replace('’', "'")
-    if str.find("</think>") > -1:
-        str = str.splitlines()[-1]
+def clean_response(str,clean):
+    if clean:
+        str = str.replace('’', "'")
+        if str.find("</think>") > -1:
+            str = str.splitlines()[-1]
+
     return str
 
 
-def setup_llm_chat(_file_name,text,messages, model):
+def setup_llm_chat(_file_name,text,messages, model,clean):
     """
     A function for testing the llm
     :param _file_name:
@@ -121,7 +123,7 @@ def setup_llm_chat(_file_name,text,messages, model):
             {'role': 'user', 'content': user_input},
             {'role': 'assistant', 'content': response.message.content},
         ]
-        print(clean_response(response.message.content) + '\n')
+        print(clean_response(response.message.content,clean) + '\n')
 
 
 def get_redirect_url(url):

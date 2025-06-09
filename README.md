@@ -139,7 +139,7 @@ just be sure the columns that are to be populated via the LLM prompts exist.*
 Once you have a list of articles (see Setting-up the article spreadsheet above), you can read them to start populating additional column information into the spreadsheet.
 call:
 ```
-python -m src.main -f read_articles -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key} -m {model_name}
+python -m src.main -f read_articles -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key} -m {model_name} -c
 ```
 
 Replacing:
@@ -152,6 +152,7 @@ Replacing:
   *AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko*. Omitting this key will default the geolocation search to use OpenStreetMaps, which isn't as useful.
 
  - {model_name}: If you've downloaded a different LLM model and want to test it out, please replace '{model_name}' with its name
+ -c (optional): If you want to clean the AI response (ie. exclude '</think>' from deep-seek and '`' from gemma. mit to see the full response
 
 Putting it all together 'reading' a news article could be performed by calling:
 ```base
