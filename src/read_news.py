@@ -83,10 +83,18 @@ def setup_llm_client(questions,text,messages,model='gemma3:1b'):
             {'role': 'assistant', 'content': response.message.content},
         ]
         # save the message response
-        questions["response"].iloc[index]=response.message.content.replace('’',"'")
-        print(question,":",response.message.content)
+        # first remove any weird characters
+        questions["response"].iloc[index] = clean_response(response.message.content)
+        print(question,":",clean_response(response.message.content))
     # pass the question dataframe back with responses
     return questions
+
+def clean_response(str):
+    str = str.replace('’', "'")
+    if str.find("</think>") > -1:
+        str = str.splitlines()[-1]
+    return str
+
 
 def setup_llm_chat(_file_name,text,messages, model):
     """
@@ -113,7 +121,7 @@ def setup_llm_chat(_file_name,text,messages, model):
             {'role': 'user', 'content': user_input},
             {'role': 'assistant', 'content': response.message.content},
         ]
-        print(response.message.content + '\n')
+        print(clean_response(response.message.content) + '\n')
 
 
 def get_redirect_url(url):

@@ -92,7 +92,7 @@ def upload_points(news_df, args):
     # ------------------------------------------------------------------------ #
 
 
-    news_df = news_df[news_df['lat'].notna() & (news_df['lat'] != '') & news_df['lng'].notna() & (news_df['lng'] != '')]
+    news_df = news_df[news_df['lat'].notna() & (news_df['lat'] != '') & news_df['lng'].notna() & (news_df['lng'] != '') & (news_df['approved'] == 'y') & (news_df['approved_by'] != '')]
     print(f"Records with geolocation: {len(news_df)}")
     #
     # ------------------------------------------------------------------------ #

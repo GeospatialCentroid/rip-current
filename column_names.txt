@@ -29,3 +29,6 @@ WFO
 distance_from_wfo
 extension_of_ref
 duplicate_of_ref
+model
+approved
+approved_by

@@ -182,6 +182,8 @@ FEATURE_SERVICE_ITEMID={abcdef1234567890abcdef1234567890}
 XY_DECIMALS=6      # precision for rounding X,Y coordinates
 
 ```
+*Note:* Only articles that have both lat and lng values, 
+plus, an 'approved' value of 'y' and a value for the 'approved_by' column will be added to the feature service.
 
 To Add new points to the feature service, call:
 ```bash
