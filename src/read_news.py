@@ -85,7 +85,7 @@ def setup_llm_client(questions,text,messages,model,clean):
         # save the message response
         # first remove any weird characters
         questions["response"].iloc[index] = clean_response(response.message.content,clean)
-        print(question,":",clean_response(response.message.content))
+        print(question,":",clean_response(response.message.content,clean))
     # pass the question dataframe back with responses
     return questions
 
