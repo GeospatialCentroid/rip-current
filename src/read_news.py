@@ -151,13 +151,8 @@ def download_article(url,_file_name, max_retries=3, initial_delay=2):
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.content, 'html.parser')
-            # Remove script and style elements
-            for tag in soup(['script', 'style', 'noscript']):
-                tag.decompose()
-
             # Extract visible text
-            text = soup.get_text(separator=' ', strip=True)
+            text = extract_clean_article_text(response.content)
             # save a copy of the article
             if not os.path.exists(article_path + "/" + _file_name):
                 print("saving",article_path + "/" + _file_name)
@@ -177,8 +172,24 @@ def download_article(url,_file_name, max_retries=3, initial_delay=2):
                 print("All attempts failed.")
                 return None
 
-    # return text
+def extract_clean_article_text(content):
 
-def chat_with_ollama(model_name, prompt):
-    response = ollama.chat(model=model_name, messages=[{'role': 'user', 'content': prompt}])
-    return response['message']['content']
+
+    soup = BeautifulSoup(content, 'html.parser')
+
+    # Remove unwanted sections
+    for tag in soup(['script', 'style', 'noscript', 'header', 'footer', 'nav', 'aside']):
+        tag.decompose()
+
+    # Optionally remove specific classes or IDs that are common noise in news sites
+    for noisy in soup.select('[class*="nav"], [class*="footer"], [id*="nav"], [id*="footer"], [class*="ad"], [id*="ad"]'):
+        noisy.decompose()
+
+    # Extract visible text paragraphs, preserving structure
+    article_text = ""
+    for elem in soup.find_all(['p', 'h1', 'h2', 'h3', 'li']):
+        text = elem.get_text(strip=True)
+        if text:
+            article_text += text + "\n\n"  # double newline = paragraph break
+
+    return article_text.strip()

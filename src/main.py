@@ -141,7 +141,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
 
             news_df["processed"].loc[row["OBJECTID"]] = 'y'
             news_df.to_csv(output, index=False)
-            print("saved", output)
+            # print("saved", output)
         else:
             print("Unable to open the article")
 
