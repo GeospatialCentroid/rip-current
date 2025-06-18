@@ -59,7 +59,7 @@ def main(args) -> None:
         news_df = pd.DataFrame(columns=column_names)
 
     # Now decide what to do based on the function argument
-    if args.function == 'read_articles':
+    if args.function == 'read_news':
         read_articles(news_df,args.data,args.row,args.questions,args.key,args.model,args.clean)
     if args.function == 'upload_points':
         upload_points.upload_points(news_df, args.data)
@@ -109,7 +109,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
     :return:
     """
 
-    if not _row:
+    if _row is None or _row == '':
         # populate a list of all the rows that haven't been processed
         rows=[]
         for index, row in news_df[news_df["processed"]!='y'].iterrows():

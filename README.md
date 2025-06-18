@@ -156,7 +156,7 @@ Replacing:
 
 Putting it all together 'reading' a news article could be performed by calling:
 ```base
-python -m src.main -f read_articles -d  output.csv -q questions.csv -k AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko -r 15 -m deepseek-r1:1.5b
+python -m src.main -f read_news -d  output.csv -q questions.csv -k AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko -r 15 -m deepseek-r1:1.5b
 ```
 
 ## 6 Article Information Extraction
