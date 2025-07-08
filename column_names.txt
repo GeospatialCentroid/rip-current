@@ -22,6 +22,7 @@ year
 time_of_occurrence
 resident_or_tourist
 city_of_residence
+state_of_residence
 summary
 lat
 lng

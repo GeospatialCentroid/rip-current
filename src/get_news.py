@@ -13,7 +13,7 @@ def get_news(search_string, start_date, end_date):
     googlenews.set_lang('en')
     #googlenews.set_period('7d')
     if start_date and end_date:
-        googlenews.set_time_range('02/01/2020','02/28/2020')
+        googlenews.set_time_range(start_date,end_date)
     googlenews.set_encode('utf-8')
     googlenews.get_news(search_string)
 

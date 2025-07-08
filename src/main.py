@@ -58,6 +58,13 @@ def main(args) -> None:
         # Create the empty DataFrame with the specified column names
         news_df = pd.DataFrame(columns=column_names)
 
+    if args.function == 'get_news':
+        # Fetch the articles
+        # do multiple searches for each search term
+        search_strings =  args.search_string.split(",")
+        for s in search_strings:
+            articles = pd.DataFrame(get_news.get_news(s, args.start_date, args.end_date))
+            news_df=process_articles(news_df, articles, args.data)
     # Now decide what to do based on the function argument
     if args.function == 'read_news':
         read_articles(news_df,args.data,args.row,args.questions,args.key,args.model,args.clean)
@@ -67,11 +74,6 @@ def main(args) -> None:
         # subset the list for points without lat
         for index, row in news_df[(news_df["lat"].isna()) & (news_df["lng"].isna() ) & (news_df["processed"] == 'y')].iterrows():
             check_location(row, news_df,args.key)
-
-    if args.function == 'get_news':
-        # Fetch the articles
-        articles = pd.DataFrame(get_news.get_news(args.search_string, args.start_date, args.end_date))
-        process_articles(news_df,articles,args.data)
 
 
 
@@ -96,7 +98,9 @@ def process_articles(archive,latest_news,output):
     len_after = len(all_data)
     # update the CSV file
     all_data.to_csv(output, index=False)
+
     print("New article(s) added:",len_after-len_before)
+    return all_data
 
 
 def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None,_clean=None):
