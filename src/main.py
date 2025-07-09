@@ -58,7 +58,7 @@ def main(args) -> None:
         # Create the empty DataFrame with the specified column names
         news_df = pd.DataFrame(columns=column_names)
 
-    if args.function == 'get_news':
+    if args.function == 'get_news' or args.function == 'all':
         # Fetch the articles
         # do multiple searches for each search term
         search_strings =  args.search_string.split(",")
@@ -66,7 +66,7 @@ def main(args) -> None:
             articles = pd.DataFrame(get_news.get_news(s, args.start_date, args.end_date))
             news_df=process_articles(news_df, articles, args.data)
     # Now decide what to do based on the function argument
-    if args.function == 'read_news':
+    if args.function == 'read_news' or args.function == 'all':
         read_articles(news_df,args.data,args.row,args.questions,args.key,args.model,args.clean)
     if args.function == 'upload_points':
         upload_points.upload_points(news_df, args.data)

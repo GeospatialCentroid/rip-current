@@ -173,23 +173,32 @@ def download_article(url,_file_name, max_retries=3, initial_delay=2):
                 return None
 
 def extract_clean_article_text(content):
-
-
     soup = BeautifulSoup(content, 'html.parser')
 
-    # Remove unwanted sections
-    for tag in soup(['script', 'style', 'noscript', 'header', 'footer', 'nav', 'aside']):
+    # Remove unwanted elements
+    for tag in soup(['script', 'style', 'nav', 'footer', 'aside']):
         tag.decompose()
 
-    # Optionally remove specific classes or IDs that are common noise in news sites
-    for noisy in soup.select('[class*="nav"], [class*="footer"], [id*="nav"], [id*="footer"], [class*="ad"], [id*="ad"]'):
-        noisy.decompose()
+    # Remove common ad/sponsored sections by class name
+    for div in soup.find_all(['div', 'section'], class_=lambda x: x and any(
+            c in x.lower() for c in ['ad', 'advert', 'sponsored', 'footer', 'nav'])):
+        div.decompose()
 
-    # Extract visible text paragraphs, preserving structure
-    article_text = ""
-    for elem in soup.find_all(['p', 'h1', 'h2', 'h3', 'li']):
-        text = elem.get_text(strip=True)
-        if text:
-            article_text += text + "\n\n"  # double newline = paragraph break
+    # Try to find the main content container
+    main = soup.find('main')
+    content = main if main else soup.body
 
-    return article_text.strip()
+    # Extract and structure text
+    output = []
+    for tag in content.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li'], recursive=True):
+        if tag.name in ['h1', 'h2', 'h3']:
+            output.append(f"\n{tag.get_text(strip=True)}\n")
+        elif tag.name == 'p':
+            output.append(tag.get_text(strip=True) + "\n")
+        elif tag.name in ['ul', 'ol']:
+            for li in tag.find_all('li'):
+                output.append(f"- {li.get_text(strip=True)}")
+            output.append("\n")
+
+    return "\n".join(output)
+

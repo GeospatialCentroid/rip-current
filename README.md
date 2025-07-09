@@ -139,7 +139,7 @@ just be sure the columns that are to be populated via the LLM prompts exist.*
 Once you have a list of articles (see Setting-up the article spreadsheet above), you can read them to start populating additional column information into the spreadsheet.
 call:
 ```
-python -m src.main -f read_articles -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key} -m {model_name} -c
+python -m src.main -f read_news -d "{name of data file}" -r {row_number} -q {question file} -k {google_maps_api_key} -m {model_name} -c
 ```
 
 Replacing:
