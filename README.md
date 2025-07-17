@@ -181,7 +181,19 @@ This {question file} is often saved as questions.csv.
 Note: The questions are asked in the order that they are listed in the {question file} and the constraint on response does impact other questions asked.
 For example, the question 
 ```"In this article,",how did the person drown?,Structure your response as only,"""Rip Current"", ""High Surf"", ""Sneaker Wave"", ""Other"" or ""Unknown"".",cause_of_drowning,```
-Actually gives the AI permission to respond "Unknown" is later questions. This is helpful in preventing the AI from giving a 'yes' or 'no' answer. 
+Actually gives the AI permission to respond "Unknown" is later questions. This is helpful in preventing the AI from giving a 'yes' or 'no' answer. \
+
+### Handling different articles about the same drowning
+The 'duplicate_of_ref' column has been added to indicate whether an article is simply a different article about the same drowning as an earlier article. If this is the case,
+please add the 'OBJECTID' of the earlier article to this row, and set the 'approved' value at 'n'.
+
+### Articles about multiple drownings
+The 'extension_of_ref' column has been added to indicate whether an articles has multiple drownings. 
+As the demographic information has been set-up for one drowning per row, 
+a duplicate of the multiple drowning row should be made for as many times as additional drownings necessitates. 
+These newly added rows should have the 'OBJECTID' of the original row in the extension_of_ref' column, 
+and they should be given unique 'OBJECTID' by adding '00000', '00001', etc. to the former 'OBJECTID'.
+
 
 ## 7 Uploading New Points
 A feature service can be used to share information with the public. 
