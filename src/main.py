@@ -245,21 +245,37 @@ def check_location(row,news_df,key=None):
             print("no location found!")
 
 def parse_date(date_str):
-    date_str = date_str.strip()
+    date_str = date_str.strip().lower()
 
-    # Case 1: Matches "X days ago"
-    match = re.match(r"(\d+)\s+days?\s+ago", date_str, re.IGNORECASE)
+    # Case 1: "X days ago"
+    match = re.match(r"(\d+)\s+days?\s+ago", date_str)
     if match:
         days_ago = int(match.group(1))
         return datetime.now() - timedelta(days=days_ago)
 
-    # Case 2: Try parsing with year
+    # Case 2: "X hours ago"
+    match = re.match(r"(\d+)\s+hours?\s+ago", date_str)
+    if match:
+        hours_ago = int(match.group(1))
+        return datetime.now() - timedelta(hours=hours_ago)
+
+    # Case 3: "X minutes ago"
+    match = re.match(r"(\d+)\s+minutes?\s+ago", date_str)
+    if match:
+        minutes_ago = int(match.group(1))
+        return datetime.now() - timedelta(minutes=minutes_ago)
+
+    # Case 4: "Yesterday"
+    if date_str == "yesterday":
+        return datetime.now() - timedelta(days=1)
+
+    # Case 5: Try parsing with year
     try:
         return datetime.strptime(date_str, '%b %d, %Y')
     except ValueError:
         pass
 
-    # Case 3: Try parsing without year, assume current year
+    # Case 6: Try parsing without year, assume current year
     try:
         current_year = datetime.now().year
         return datetime.strptime(f"{date_str}, {current_year}", '%b %d, %Y')

@@ -14,7 +14,7 @@ def get_news(search_string, start_date, end_date, last_start_date, last_end_date
     #googlenews.set_period('7d')
 
     # make an exception for pulling the latest data since the last run
-    if start_date =='last':
+    if start_date =='last' and last_start_date:
         print('starting at',last_start_date)
         googlenews.set_time_range(last_start_date, last_end_date)
     elif start_date and end_date:

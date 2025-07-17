@@ -159,6 +159,12 @@ Replacing:
  - {model_name}: If you've downloaded a different LLM model and want to test it out, please replace '{model_name}' with its name
  -c (optional): If you want to clean the AI response (ie. exclude '</think>' from deep-seek and '`' from gemma. mit to see the full response
    
+Putting it all together
+
+```
+python -m src.main -f read_news -d "output.csv" -m llama3.2:3b  -q questions.csv -c -k AIzaSyCdnWn8Kanu6NMDvQNggPC_rjYJfdWL_ko
+
+```
 
 ## 6 Article Information Extraction
 The program extracts information from articles by prompting a LLM with questions.
