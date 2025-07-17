@@ -23,7 +23,7 @@ import argparse
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 
-
+from datetime import datetime, timedelta,date
 import warnings
 import re
 
@@ -33,6 +33,7 @@ from . import get_news
 from . import read_news
 from . import get_location
 from . import upload_points
+from . import create_vector_file
 
 def main(args) -> None:
     """
@@ -60,10 +61,18 @@ def main(args) -> None:
 
     if args.function == 'get_news' or args.function == 'all':
         # Fetch the articles
+        # Look at the existing data to get the last run date
+        last_start_date, last_end_date= None,None
+        try:
+            news_df['datetime'] = pd.to_datetime(news_df['datetime'], errors='coerce')
+            last_start_date = news_df['datetime'].max().strftime('%m/%d/%Y')
+            last_end_date=date.today().strftime('%m/%d/%Y')
+        except Exception as e:
+                pass
         # do multiple searches for each search term
         search_strings =  args.search_string.split(",")
         for s in search_strings:
-            articles = pd.DataFrame(get_news.get_news(s, args.start_date, args.end_date))
+            articles = pd.DataFrame(get_news.get_news(s, args.start_date, args.end_date,last_start_date, last_end_date))
             news_df=process_articles(news_df, articles, args.data)
     # Now decide what to do based on the function argument
     if args.function == 'read_news' or args.function == 'all':
@@ -71,9 +80,13 @@ def main(args) -> None:
     if args.function == 'upload_points':
         upload_points.upload_points(news_df, args.data)
     if args.function == 'get_location':
+        # for testing purposes
         # subset the list for points without lat
         for index, row in news_df[(news_df["lat"].isna()) & (news_df["lng"].isna() ) & (news_df["processed"] == 'y')].iterrows():
             check_location(row, news_df,args.key)
+    if args.function == 'create_vector_file':
+        create_vector_file.csv_to_point_vector(news_df[(news_df["lat"]!='') & (news_df["lng"]!='' ) & (news_df["processed"] == 'y')], "lat", "lng", args.output)
+
 
 
 
@@ -88,6 +101,9 @@ def process_articles(archive,latest_news,output):
     """
     # Check the length of articles we have
     len_before = len(archive)
+
+   # fix the date
+    latest_news['datetime'] = latest_news['date'].apply(parse_date).dt.strftime('%m/%d/%Y')
     # add all the new articles
     all_data = pd.concat([archive, latest_news], ignore_index=True)
     # remove the duplicates
@@ -108,7 +124,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
     Worked through the selected news articles in the spreadsheet
     Opening, saving, reading, prompting and storing the relevant information
 
-    :param news_df: the spreadshee
+    :param news_df: the spreadsheet
     :param output: the name of the file to be saved
     :return:
     """
@@ -138,19 +154,73 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
         if responses is not False:
             #populate the record columns based on the prompt responses
             for index, r in responses.iterrows():
-                news_df[r["column name"].strip()].loc[row["OBJECTID"]] = r["response"]
+                # now that the r["column name"] can have more that one value
+                if  r["column name"]!=None and type(r["column name"]) is str:
+                    cols = r["column name"].strip().split(",")
+                    response = [r["response"]]
+                    if len(cols)>1:
+                        # also break up the response
+                        response= r["response"].split(",")
+                    # distribute the response over multiple columns if appropriate
+                    for i, c in enumerate(cols):
+                        if i < len(response):
+                            news_df[c].loc[row["OBJECTID"]] = response[i].strip()
 
             # check for city, state and beach to geolocate
             check_location(news_df.loc[row["OBJECTID"]], news_df,_key)
 
+            # calculate the drowning_datetime
+            news_date = None
+            # user either the 'datetime' or c
+            if news_df.loc[row["OBJECTID"]]['datetime'] !='':
+                news_date= parse_date_str(str(news_df.loc[row["OBJECTID"]]['datetime']))
+
+
+            if news_date and news_df.loc[row["OBJECTID"]]['day'] !='':
+                news_day = news_df.loc[row["OBJECTID"]]['day']
+                drowning_datetime = get_previous_day(news_date,news_day)
+                news_df["drowning_datetime"].loc[row["OBJECTID"]] = drowning_datetime.strftime('%m/%d/%Y')
+
             news_df["processed"].loc[row["OBJECTID"]] = 'y'
+            # print(news_df.loc[row["OBJECTID"]])
             news_df.to_csv(output, index=False)
             # print("saved", output)
         else:
             print("Unable to open the article")
 
+def parse_date_str(date_str):
+    for fmt in ('%m/%d/%y', '%m/%d/%Y'):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f"Date format not recognized: {date_str}")
+
+def get_previous_day(current_date, target_day):
+    days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    current_weekday = current_date.weekday()  # Monday=0
+
+    target_weekday = None
+    try:
+        target_weekday = days_of_week.index(target_day)
+    except Exception as e:
+        return current_date
+
+    if current_weekday == target_weekday:
+        return current_date  # Same day, no change
+
+    delta_days = (current_weekday - target_weekday + 7) % 7
+    return current_date - timedelta(days=delta_days)
+
 def check_location(row,news_df,key=None):
-    print(row)
+    """
+
+    :param row: the row from the dataframe we want to work with
+    :param news_df: whole news_df
+    :param key: the API key for performing a google location search
+    :return:
+    """
+
     if isinstance(row["city"], str) and row["city"] != '' \
         and isinstance(row["state"], str) and row["state"] != '' \
         and isinstance(row["beach"], str) and row["beach"] != '':
@@ -165,12 +235,36 @@ def check_location(row,news_df,key=None):
         if location:
             news_df["lat"].loc[row["OBJECTID"]] = location["lat"]
             news_df["lng"].loc[row["OBJECTID"]] = location["lng"]
-            news_df["WFO"].loc[row["OBJECTID"]] = location["WFO"]
-            news_df["distance_from_wfo"].loc[row["OBJECTID"]] = location["distance_from_wfo"]
+            if "WFO" in location:
+                news_df["WFO"].loc[row["OBJECTID"]] = location["WFO"]
+                news_df["distance_from_wfo"].loc[row["OBJECTID"]] = location["distance_from_wfo"]
+            else:
+                print("No WFO in ",location)
 
         else:
             print("no location found!")
 
+def parse_date(date_str):
+    date_str = date_str.strip()
+
+    # Case 1: Matches "X days ago"
+    match = re.match(r"(\d+)\s+days?\s+ago", date_str, re.IGNORECASE)
+    if match:
+        days_ago = int(match.group(1))
+        return datetime.now() - timedelta(days=days_ago)
+
+    # Case 2: Try parsing with year
+    try:
+        return datetime.strptime(date_str, '%b %d, %Y')
+    except ValueError:
+        pass
+
+    # Case 3: Try parsing without year, assume current year
+    try:
+        current_year = datetime.now().year
+        return datetime.strptime(f"{date_str}, {current_year}", '%b %d, %Y')
+    except ValueError:
+        return pd.NaT  # invalid date format
 
 def parse_args():
     # Create an ArgumentParser object
@@ -198,6 +292,8 @@ def parse_args():
 
     parser.add_argument("-c", "--clean",
                         help="Pass the AI responses through a cleaning function",action="store_true" )
+
+    parser.add_argument("-o", "--output", type=str, help="The output vector data file")
 
     return parser.parse_args()
 

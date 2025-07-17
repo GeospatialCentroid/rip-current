@@ -11,6 +11,7 @@ from googlenewsdecoder import gnewsdecoder
 
 import requests
 from bs4 import BeautifulSoup
+import json
 
 article_path= "articles"
 
@@ -43,7 +44,7 @@ def read_news(_url, _file_name,question_file,model='gemma3:1b',clean=None):
 
         text = download_article(_url,_file_name)
 
-        if text =='':
+        if text =='' or text == None:
             return False
 
     # begin the LLM chat message list
@@ -140,7 +141,10 @@ def download_article(url,_file_name, max_retries=3, initial_delay=2):
 
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' 
+                  'AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/115.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9'
     }
 
     delay = initial_delay
@@ -172,33 +176,110 @@ def download_article(url,_file_name, max_retries=3, initial_delay=2):
                 print("All attempts failed.")
                 return None
 
+# Reference https://chatgpt.com/share/6877ceba-a8e8-8004-b08e-abb98602cb09
 def extract_clean_article_text(content):
     soup = BeautifulSoup(content, 'html.parser')
-
-    # Remove unwanted elements
-    for tag in soup(['script', 'style', 'nav', 'footer', 'aside']):
-        tag.decompose()
-
-    # Remove common ad/sponsored sections by class name
-    for div in soup.find_all(['div', 'section'], class_=lambda x: x and any(
-            c in x.lower() for c in ['ad', 'advert', 'sponsored', 'footer', 'nav'])):
-        div.decompose()
-
-    # Try to find the main content container
-    main = soup.find('main')
-    content = main if main else soup.body
-
-    # Extract and structure text
     output = []
-    for tag in content.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li'], recursive=True):
+
+
+    # Extract author from application/ld+json schema.org metadata
+    author_extracted = None
+    ld_json_tags = soup.find_all('script', type='application/ld+json')
+    for tag in ld_json_tags:
+        try:
+            data = json.loads(tag.string)
+            if isinstance(data, list):
+                for entry in data:
+                    author_name = extract_author_name_from_json(entry)
+                    if author_name:
+                        author_extracted = author_name
+                        break
+            else:
+                author_name = extract_author_name_from_json(data)
+                if author_name:
+                    author_extracted = author_name
+                    break
+        except (json.JSONDecodeError, TypeError):
+            continue
+
+    # Add author line if extracted
+    if author_extracted:
+        output.append(f"By {author_extracted}\n")
+
+        # Remove unwanted elements
+        for tag in soup(['script', 'style', 'nav', 'footer', 'aside']):
+            tag.decompose()
+
+        for div in soup.find_all(['div', 'section'], class_=lambda x: x and any(
+                c in x.lower() for c in ['ad', 'advert', 'sponsored', 'footer', 'nav'])):
+            div.decompose()
+
+        # Extract title
+        h1 = soup.find('h1')
+        if h1:
+            output.append(f"\nTitle: {h1.get_text(strip=True)}\n")
+        else:
+            page_title = soup.title.string if soup.title else "No Title Found"
+            output.append(f"\nTitle: {page_title.strip()}\n")
+
+        # Extract publish date
+        time_tag = soup.find('time')
+        if time_tag:
+            output.append(f"Published: {time_tag.get_text(strip=True)}\n")
+        else:
+            meta_time = soup.find('meta', attrs={'property': 'article:published_time'})
+            if meta_time and meta_time.has_attr('content'):
+                output.append(f"Published: {meta_time['content']}\n")
+
+    # Determine main content area
+    content_area = soup.find('main') or soup.find('article') or soup.body
+    if content_area is None:
+        return "\n".join(output)
+
+    # Extract text content
+    for tag in content_area.find_all(['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li'], recursive=True):
+        text = tag.get_text(strip=True)
+        if not text:
+            continue
+
         if tag.name in ['h1', 'h2', 'h3']:
-            output.append(f"\n{tag.get_text(strip=True)}\n")
+            output.append(f"\n{text}\n")
+
         elif tag.name == 'p':
-            output.append(tag.get_text(strip=True) + "\n")
+            output.append(text + "\n")
+
         elif tag.name in ['ul', 'ol']:
-            for li in tag.find_all('li'):
-                output.append(f"- {li.get_text(strip=True)}")
+            classes = tag.get('class') or []
+            # Skip byline list if author already extracted
+            if author_extracted and 'article-byline' in [c.lower() for c in classes]:
+                continue
+            for li in tag.find_all('li', recursive=False):
+                li_text = li.get_text(strip=True)
+                output.append(f"- {li_text}")
             output.append("\n")
 
-    return "\n".join(output)
+        elif tag.name == 'li':
+            parent = tag.find_parent(['ul', 'ol'])
+            if parent is None:
+                output.append(f"- {text}\n")
 
+    return "\n".join(output).strip()
+
+
+def extract_author_name_from_json(data):
+    """
+    Helper to extract author name string from JSON-LD data
+    """
+    if isinstance(data, dict) and data.get('@type') == 'NewsArticle':
+        authors = data.get('author')
+        if not authors:
+            return None
+        if isinstance(authors, dict):
+            authors = [authors]
+
+        for author in authors:
+            if isinstance(author, dict):
+                name = author.get('name', '').strip()
+                if name:
+                    return name
+    return None
