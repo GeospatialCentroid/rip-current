@@ -257,7 +257,15 @@ Model Comparison Results:
 | llama   | 58.38%           | 52.63% | 46.55%   | 75.86% |
 | gemma   | 46.24%           | 42.11% | 20.69%   | 75.86% |
 
+## Credits and Acknowledgments
 
+Kevin Worthington, Colorado State University
+
+Jarrod Loerzel, NOAA
+
+Liz Batty, NOAA
+
+With special thanks to Alyssa Mathews for their extensive prompt engineering support.
 
 
 ## References  
