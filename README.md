@@ -247,15 +247,23 @@ python src/compare_models.py \
   --model_col model \
   --manual_value manual \
   --value_cols age gender WFO
-
+  --summary_only
 ```
 
-Model Comparison Results:
+The initial run of this comparison showed 'age' value accuracies of 52.6% and 42.2% for llama and gemma models respectively,
+but upon closer evaluation, it was revealed that some data cleaning was needed. 
+The cleaned data file was saved as 'combined_output_adjusted.xlsx' with the following adjustments made to the 'age' column:
+- One of the manually entered values was incorrect (updated in green)
+- Three of the articles could not be retrieved ('?' added in place and used as a skip flag)
+- And in several places the model returned the same 'age' value twice (replaced with a single value in blue).
+
+
+The Rerun Model Comparison Results are:
 
 | Model   | Total Accuracy   | age    | gender   | WFO    |
 |---------|------------------|--------|----------|--------|
-| llama   | 58.38%           | 52.63% | 46.55%   | 75.86% |
-| gemma   | 46.24%           | 42.11% | 20.69%   | 75.86% |
+| llama   | 60.95%           | 60.38% | 46.55%   | 75.86% |
+| gemma   | 52.07%           | 60.38% | 20.69%   | 75.86% |
 
 ## Credits and Acknowledgments
 
