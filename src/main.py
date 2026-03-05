@@ -67,11 +67,15 @@ def main(args) -> None:
             news_df['datetime'] = pd.to_datetime(news_df['datetime'], errors='coerce')
             last_start_date = news_df['datetime'].max().strftime('%m/%d/%Y')
             last_end_date=date.today().strftime('%m/%d/%Y')
+            print(last_start_date,last_end_date,"Are the dates we'll use")
         except Exception as e:
+                print(e, "while trying set the last run date")
                 pass
         # do multiple searches for each search term
         search_strings =  args.search_string.split(",")
+        print(search_strings,"are the search strings we'll use")
         for s in search_strings:
+            print("get_news with",s,args.start_date, args.end_date,last_start_date, last_end_date)
             articles = pd.DataFrame(get_news.get_news(s, args.start_date, args.end_date,last_start_date, last_end_date))
             news_df=process_articles(news_df, articles, args.data)
     # Now decide what to do based on the function argument
@@ -101,9 +105,13 @@ def process_articles(archive,latest_news,output):
     """
     # Check the length of articles we have
     len_before = len(archive)
-
+    print(latest_news.head())
    # fix the date
-    latest_news['datetime'] = latest_news['date'].apply(parse_date).dt.strftime('%m/%d/%Y')
+    try:
+       latest_news['datetime'] = (pd.to_datetime(latest_news['date'], errors='coerce').dt.strftime('%m/%d/%Y'))
+    except Exception as e:
+        print(e)    
+        pass
     # add all the new articles
     all_data = pd.concat([archive, latest_news], ignore_index=True)
     # remove the duplicates
@@ -139,8 +147,11 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
 
     print("About to update ",len(rows)," row(s)")
     for row in rows:
-        reporter=str(row["reporter"]).replace("By "," ") # clean reporter name for file name
-        file_name=str(row["title"])+"_"+str(row["media"])+"_"+reporter # create file name
+        reporter=""
+        if(isinstance(row["reporter"], str) and row["reporter"] != ''):
+            reporter='_'+str(row["reporter"]).replace("By "," ") # clean reporter name for file name
+
+        file_name=str(row["title"])+"_"+str(row["media"])+reporter # create file name
         file_name=re.sub(r'[^a-zA-Z0-9\s]', '', file_name)# strip file name of special characters
 
         # determine if we're working with questions
@@ -172,10 +183,11 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
             # calculate the drowning_datetime
             news_date = None
             # user either the 'datetime' or c
-            if news_df.loc[row["OBJECTID"]]['datetime'] !='':
+            if news_df.loc[row["OBJECTID"]]['datetime'] !='' and pd.notna(news_df.loc[row["OBJECTID"]]['datetime']):
                 news_date= parse_date_str(str(news_df.loc[row["OBJECTID"]]['datetime']))
 
-
+            # if we have a news date and a day of week, get the drowning datetime
+            print("$$ news date is", news_date,news_df.loc[row["OBJECTID"]]['day'])
             if news_date and news_df.loc[row["OBJECTID"]]['day'] !='':
                 news_day = news_df.loc[row["OBJECTID"]]['day']
                 drowning_datetime = get_previous_day(news_date,news_day)
@@ -189,7 +201,7 @@ def read_articles(news_df,output,_row=None,_questions=None,_key=None,_model=None
             print("Unable to open the article")
 
 def parse_date_str(date_str):
-    for fmt in ('%m/%d/%y', '%m/%d/%Y'):
+    for fmt in ('%m/%d/%y', '%m/%d/%Y', '%Y-%m-%d %H:%M:%S'):
         try:
             return datetime.strptime(date_str, fmt).date()
         except ValueError:
